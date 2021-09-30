@@ -1,85 +1,180 @@
 //第一題
 //實作 Fibonacci number (費式數列)
-function fib(n) {
+function fib_cal(n) {
   if (n <= 0) {
     return 0;
   } else if (n === 1) {
     return 1;
   } else {
-    return fib(n - 1) + fib(n - 2);
+    return fib_cal(n - 1) + fib_cal(n - 2);
   }
 }
 
 //第二題
 //擇一實作 Debounce 或 Throttle --- 選擇製作 debounce
-function debounce(func, delay = 300) {
-  let timer;
-  return (...args) => {
-    clearTimeout(timer);
-    timer = setTimeout(() => {
-      func.apply(this, args);
-    }, timeout);
+function debounce(func, delay) {
+  let HoldDown;
+  return (...items) => {
+    clearTimeout(HoldDown); // 每次執行前先清除前一次的setTimeout
+    HoldDown = setTimeout(() => {   //執行setTimeout
+      func.apply(this, items);
+    }, delay);
   };
 }
 
-function saveInput() {
-  console.log('Saving data');
+function isActive() {
+  console.log('show data');
 }
 
-const processChanges = debounce(() => saveInput());
+const debounceFunc = debounce(() => isActive(), 250);
 
 //第三題
 //使用 Linked List 實作 Stack
 
+class Node {
+  //製作資料節點
+  constructor(data) {
+    this.data = data; //資料內容
+    this.next = null; //下一個節點
+  }
+}
+
+class Stack {
+  constructor() {
+    this.head = null; //linked list的開頭
+    this.tail = null; //linked list的結尾
+    this.length = 0; //linked list的節點數量
+  }
+
+  isEmpty() {
+    //判斷 linked list 內的資料是否為空
+    return this.length === 0;
+  }
+
+  push(data) {
+    const newNode = new Node(data);
+    if (this.isEmpty()) {
+      this.head = newNode;
+      this.tail = newNode;
+    } else {
+      this.tail.next = newNode;
+      this.tail = newNode;
+    }
+    this.length += 1;
+  }
+  
+
+  removeAt(index) {
+    if (index < 0 || index >= this.length) return;
+
+    if (index === 0) {
+      this.head = this.head.next;
+    } else {
+      const prevNode = this.getNode(index - 1);
+      const delNode = prevNode.next;
+      const nextNode = delNode.next;
+      prevNode.next = nextNode;
+      if (nextNode === null) {
+        this.tail = prevNode;
+      }
+    }
+    this.length -= 1;
+  }
+  
+
+  pop() {
+    const tailNum = this.length - 1;
+    const temp = [];
+    let currNode = this.head;
+    while (currNode) {
+      temp.push(currNode.data);
+      currNode = currNode.next;
+    }
+    const myPop = temp.pop();
+    console.log(myPop);
+    return this.removeAt(tailNum);
+  }
+ 
+
+  getNode(index) {
+    if (index < 0 || index >= this.length) return null;
+    let currNode = this.head;
+    let currIndex = 0;
+    while (currIndex < index) {
+      currIndex += 1;
+      currNode = currNode.next;
+    }
+    return currNode;
+  }
+
+  size() {
+    console.log(this.length);
+    return this.length;
+  }
+
+  print() {
+    const temp = [];
+    let currNode = this.head;
+    while (currNode) {
+      temp.push(currNode.data);
+      currNode = currNode.next;
+    }
+    return temp.join(', ');
+  }
+}
+
+const myStack = new Stack();
+myStack.push(1);
+myStack.push(2);
+myStack.push(3);
+myStack.pop();
+myStack.size();
+console.log(myStack.print());
+
 
 //第四題
 //實作 getPagination
-getPagination(offset, limit, total);
+
+const pg = { currentPage: 1, totalPage: 1, renderPages: 5 };
+const pgdata = [];
+const pgnum = [];
+const pagen = document.querySelector('.pagen');
 
 function getPagination(offset, limit, total) {
-  const totalPage = Math.ceil(total / limit); //計算總頁數,避免出現小數點,所以取整數
-  let currentPage = offset; //為了防止js出錯所使用的機制,如果當前頁碼大於現在的頁碼(如:明明總共只有6頁,現在在第6頁,結果當前頁碼卻有7頁)
-  if (currentPage > totalPage) {
-    currentPage = totalPage;
+  pg.totalPage = Math.ceil(total / limit);
+  if (pg.currentPage > pg.totalPage) {
+    pg.currentPage = pg.totalPage;
   }
-  const maxpage = currentPage * limit; //用來計算每頁顯示最大筆的資料(如:一共100筆資料[0,1,2,3,...],我要每頁顯示6筆,所以1*6=6,第一頁最大筆為第5筆的資料[0,1,2,3,4,5])
-  const minpage = currentPage * limit - limit + 1; //用來計算每頁顯示最小筆的資料(如:一共100筆資料[0,1,2,3,...],我要每頁顯示6筆,所以1*6-6=0+1=1,第一頁最小筆為第1筆的資料[0,...]  
-  const renderPages = offset + 5;
-  //                  {   總頁數,     當前頁數,  往前一頁的按鈕,      往下一頁的按鈕,                 頁籤顯示數量 }
-  const pagemanager = { totalPage, currentPage, pre: currentPage > 1, next: currentPage < totalPage, renderPages }; //利用鏡射原理,製作一組物件來供頁碼按鈕使用
 
-  const pagedata = []; //用來儲存元素
-  data.forEach((element, index) => {
-    const number = index + 1; //用來設計dataset的索引,能夠產生每個頁碼所需的索引資料,再用這個索引來表現切換功能
-    if (number >= minpage && number <= maxpage) {
-      pagedata.push(element);
+  const maxdata = pg.currentPage * limit;
+  const mindata = pg.currentPage * limit - limit + 1;
+  for (let j = 0; j < total; j++) {
+    if (j + 1 >= mindata && j + 1 <= maxdata) {
+      pgdata.push(j);
     }
-  }); 
-
-  pageBtn(pagemanager);
-
+  }
+  pagebtn(pg);
+  console.log(pg);
 }
 
-function pageBtn(parameter) {
-  //開始製作頁碼按鈕,parameter為分頁的數字  
+function pagebtn(data) {
+  let maxStart = data.currentPage;
+  let maxEnd = data.currentPage + data.renderPages - 1;
 
-  
-  const renderPages = parameter.renderPages;
-  let str = '';
-
-  if (parameter.pre) {
-    str += `<li class="page-item">
-      <a class="page-link" href="#" data-pages="${
-        Number(parameter.currentPage) - 1
-      }">&lt;&nbsp;prev</a> 
-     </li>`;
+  if (maxEnd > data.totalPage) {
+    maxStart = data.totalPage - (data.renderPages - 1);
+    maxEnd = data.totalPage;
+  } else {
+    maxStart = 1;
+    maxEnd = data.renderPages;
   }
 
-  for (let i = 1; renderPages >= i; i++) {
-    if (Number(parameter.currentPage) === i) {
+  let str = ``;
+  for (let i = maxStart; i <= maxEnd; i++) {
+    if (Number(data.currentPage) === i) {
       str += `
-      <li class="page-item">
-        <a class="page-link active" href="#" data-pages="${i}">${i}</a>
+      <li class="page-item active">
+        <a class="page-link" href="#" data-pages="${i}">${i}</a>
       </li>
       `;
     } else {
@@ -89,21 +184,26 @@ function pageBtn(parameter) {
       </li>
       `;
     }
+    //str += `<li class="page-item"><a class="page-link" data-pages="${i}">${i}</a></li>`;
   }
-
-  if (parameter.next) {
-    str += `
-    <li class="page-item">
-      <a class="page-link" href="#" data-pages="${
-        Number(parameter.currentPage) + 1
-      }">next&nbsp;&gt;</a>
-    </li>
-    `;
-  }
-
   pagen.innerHTML = str;
+  console.log(maxStart);
 }
 
+function clickpage(e) {
+  e.preventDefault();
+  if (e.target.nodeName !== 'A') {
+    return;
+  }
+  const pagen = e.target.dataset.pages;
+  pg.currentPage = Number(pagen);
+  getPagination(0, 5, 33);
+  pagebtn(pg);
+}
+
+pagen.addEventListener('click', clickpage);
+
+getPagination(0, 5, 33);
 
 //加分題
 //實作 React Custom hook
