@@ -135,75 +135,63 @@ console.log(myStack.print());
 //第四題
 //實作 getPagination
 
-const pg = { currentPage: 1, totalPage: 1, renderPages: 5 };
-const pgdata = [];
-const pgnum = [];
-const pagen = document.querySelector('.pagen');
+const ser = { currentPage: 1, totalPage: 1, renderPages: [] };
 
 function getPagination(offset, limit, total) {
-  pg.totalPage = Math.ceil(total / limit);
-  if (pg.currentPage > pg.totalPage) {
-    pg.currentPage = pg.totalPage;
+  let allpage = Math.ceil(total / limit);
+  ser.totalPage = allpage;
+
+  let pg_pack;
+  let pgdata_pack = [];
+
+  for (let n = 0; n < total; n++) {
+    pgdata_pack.push(n);
   }
 
-  const maxdata = pg.currentPage * limit;
-  const mindata = pg.currentPage * limit - limit + 1;
-  for (let j = 0; j < total; j++) {
-    if (j + 1 >= mindata && j + 1 <= maxdata) {
-      pgdata.push(j);
+  pg_pack = group(pgdata_pack, limit);
+
+  pg_pack.forEach((item, index) => {
+    let local = pg_pack[index].indexOf(offset);
+
+    if (local !== -1) {
+      ser.currentPage = index + 1;
     }
-  }
-  pagebtn(pg);
-  console.log(pg);
-}
+  });
 
-function pagebtn(data) {
-  let maxStart = data.currentPage;
-  let maxEnd = data.currentPage + data.renderPages - 1;
+  let maxLeft = ser.currentPage - Math.floor(limit / 2);
+  let maxRight = ser.currentPage + Math.floor(limit / 2);
 
-  if (maxEnd > data.totalPage) {
-    maxStart = data.totalPage - (data.renderPages - 1);
-    maxEnd = data.totalPage;
-  } else {
-    maxStart = 1;
-    maxEnd = data.renderPages;
+  if (maxLeft < 1) {
+    maxLeft = 1;
+    maxRight = limit;
   }
 
-  let str = ``;
-  for (let i = maxStart; i <= maxEnd; i++) {
-    if (Number(data.currentPage) === i) {
-      str += `
-      <li class="page-item active">
-        <a class="page-link" href="#" data-pages="${i}">${i}</a>
-      </li>
-      `;
-    } else {
-      str += `
-      <li class="page-item">
-        <a class="page-link" href="#" data-pages="${i}">${i}</a>
-      </li>
-      `;
+  if (maxRight > allpage) {
+    maxLeft = allpage - (limit - 1);
+
+    if (maxLeft < 1) {
+      maxLeft = 1;
     }
-    //str += `<li class="page-item"><a class="page-link" data-pages="${i}">${i}</a></li>`;
+    maxRight = allpage;
   }
-  pagen.innerHTML = str;
-  console.log(maxStart);
+  ser.renderPages = [];
+  for (let i = maxLeft; i <= maxRight; i++) {
+    ser.renderPages.push(i);
+  }
+
+  console.log(ser);
 }
 
-function clickpage(e) {
-  e.preventDefault();
-  if (e.target.nodeName !== 'A') {
-    return;
+function group(array, subGroupLength) {
+  let index = 0;
+  let newArray = [];
+  while (index < array.length) {
+    newArray.push(array.slice(index, (index += subGroupLength)));
   }
-  const pagen = e.target.dataset.pages;
-  pg.currentPage = Number(pagen);
-  getPagination(0, 5, 33);
-  pagebtn(pg);
+  return newArray;
 }
 
-pagen.addEventListener('click', clickpage);
-
-getPagination(0, 5, 33);
+getPagination(5, 5, 33);
 
 //加分題
 //實作 React Custom hook
